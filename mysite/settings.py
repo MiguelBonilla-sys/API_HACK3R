@@ -29,7 +29,7 @@ SECRET_KEY = os.getenv('SECRET')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1','.vercel.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.vercel.app']
 
 
 # Application definition
@@ -41,8 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework', # Esto es para agregar REST Framework
-    'rest_framework.authtoken', # Es para agregar el token de autenticación
+    'rest_framework',  # Esto es para agregar REST Framework
+    'rest_framework.authtoken',  # Es para agregar el token de autenticación
     'rest_auth',
     'rest_auth.registration',
     'corsheaders',  # Añadir corsheaders
@@ -161,7 +161,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "http://hackrlabs.vercel.app",
 ]
 
 # Celery settings
