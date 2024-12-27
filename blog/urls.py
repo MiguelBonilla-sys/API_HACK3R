@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework import routers
-
+from django.conf import settings
+from django.conf.urls.static import static
 from blog.Views.AuditLogView import AuditLogViewSet
 from blog.Views.ConferenciasView import ConferenciasViewSet
 from blog.Views.CursosView import CursosViewSet
@@ -21,4 +22,4 @@ router.register(r'proyectos', ProyectosViewSet)
 
 urlpatterns = [
     path('hl4/v1/', include(router.urls)),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
