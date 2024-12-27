@@ -84,7 +84,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'mysite.wsgi.application'
 
 # Django REST framework settings
+# ...existing code...
 REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.openapi.AutoSchema",
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
@@ -93,6 +95,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
+# ...existing code...
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases

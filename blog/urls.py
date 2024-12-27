@@ -1,5 +1,7 @@
 from django.urls import path, include
 from rest_framework import routers
+from rest_framework.documentation import include_docs_urls
+from rest_framework.schemas import get_schema_view
 from django.conf import settings
 from django.conf.urls.static import static
 from blog.Views.AuditLogView import AuditLogViewSet
@@ -19,9 +21,12 @@ router.register(r'noticias', NoticiasViewSet)
 router.register(r'ofertasempleo', OfertasEmpleoViewSet)
 router.register(r'proyectos', ProyectosViewSet)
 
+schema_view = get_schema_view(title='HL4 API')
+
 
 urlpatterns = [
     path('hl4/v1/', include(router.urls)),
+    path('docs/', schema_view, name='api-docs'),
 ]
 
 if settings.DEBUG:
