@@ -98,7 +98,6 @@ celerybeat-schedule.*
 *.sage.py 
 
 # Environments 
-.env 
 .venv 
 .myvenv
 myvenv/
@@ -142,4 +141,3 @@ GitHub.sublime-settings
 
 # macOS #
 .DS_Store
-.DS_Store/*.env
