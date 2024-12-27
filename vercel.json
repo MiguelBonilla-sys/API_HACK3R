@@ -1,11 +1,6 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "mysite/wsgi.py",
-      "use": "@vercel/python"
-    }
-  ],
+  "public": true,
   "routes": [
     {
       "src": "/static/(.*)",
