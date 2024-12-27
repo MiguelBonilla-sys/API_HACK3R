@@ -142,4 +142,4 @@ GitHub.sublime-settings
 
 # macOS #
 .DS_Store
-.DS_Store/*
+.DS_Store/*.env
