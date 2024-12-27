@@ -11,15 +11,7 @@ class OfertasEmpleo(models.Model):
     fecha_publicacion = models.DateTimeField(blank=True, null=True)
     descripcion_empleo = models.CharField(max_length=1200)
     imagen = models.TextField()
-    link_oferta = models.TextField(
-            validators=[
-                RegexValidator(
-                    regex=r'^data:image/[a-zA-Z]+;base64,',  # Usando raw string
-                    message='La imagen debe estar en formato base64',
-                    code='invalid_image'
-                )
-            ]
-        )
+    link_oferta = models.ImageField(upload_to='img/ofertas/')
     fecha_expiracion = models.DateTimeField(blank=True, null=True)
     creador = models.ForeignKey(User, on_delete=models.CASCADE)
 

@@ -10,13 +10,5 @@ class Noticias(models.Model):
     description_noticia = models.CharField(max_length=1450)  # Field name made lowercase.
     creador = models.ForeignKey(User, on_delete=models.CASCADE)
     fuente = models.CharField(max_length=250, blank=True, null=True)
-    imagen_noticia = models.TextField(
-            validators=[
-                RegexValidator(
-                    regex=r'^data:image/[a-zA-Z]+;base64,',  # Usando raw string
-                    message='La imagen debe estar en formato base64',
-                    code='invalid_image'
-                )
-            ]
-        )
+    imagen_noticia = models.ImageField(upload_to='img/noticias/')
 

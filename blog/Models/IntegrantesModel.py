@@ -8,15 +8,7 @@ class Integrantes(models.Model):
     semestre = models.CharField(max_length=50)
     correo = models.CharField(max_length=550)
     link_git = models.CharField(max_length=650)
-    imagen = models.TextField(
-            validators=[
-                RegexValidator(
-                    regex=r'^data:image/[a-zA-Z]+;base64,',  # Usando raw string
-                    message='La imagen debe estar en formato base64',
-                    code='invalid_image'
-                )
-            ]
-        )
+    imagen = models.ImageField(upload_to='img/integrantes/')
     creador = models.ForeignKey(User, on_delete=models.CASCADE)
     estado = models.BooleanField()
     reseña = models.TextField()
