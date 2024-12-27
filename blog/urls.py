@@ -1,9 +1,8 @@
 from django.urls import path, include
 from rest_framework import routers
-from rest_framework.documentation import include_docs_urls
-from rest_framework.schemas import get_schema_view
-from django.conf import settings
-from django.conf.urls.static import static
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+from rest_framework.permissions import AllowAny
 from blog.Views.AuditLogView import AuditLogViewSet
 from blog.Views.ConferenciasView import ConferenciasViewSet
 from blog.Views.CursosView import CursosViewSet
@@ -21,14 +20,17 @@ router.register(r'noticias', NoticiasViewSet)
 router.register(r'ofertasempleo', OfertasEmpleoViewSet)
 router.register(r'proyectos', ProyectosViewSet)
 
-schema_view = get_schema_view(title='HL4 API')
-
+schema_view = get_schema_view(
+    openapi.Info(
+        title="API title",
+        default_version='v1',
+        description="API description",
+    ),
+    public=True,
+    permission_classes=(AllowAny,),
+)
 
 urlpatterns = [
     path('hl4/v1/', include(router.urls)),
-    path('docs/', schema_view, name='api-docs'),
+    path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

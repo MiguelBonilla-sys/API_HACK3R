@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'corsheaders',  # Añadir corsheaders
     'blog',
     'django_celery_beat',  # Añadir django-celery-beat
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -87,13 +88,6 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 # ...existing code...
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.openapi.AutoSchema",
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
 }
 # ...existing code...
 
