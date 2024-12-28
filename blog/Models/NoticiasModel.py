@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.validators import RegexValidator
+from cloudinary.models import CloudinaryField
 
 class Noticias(models.Model):
     idnoticia = models.AutoField(primary_key=True)  # Field name made lowercase.
@@ -10,5 +10,5 @@ class Noticias(models.Model):
     description_noticia = models.CharField(max_length=1450)  # Field name made lowercase.
     creador = models.ForeignKey(User, on_delete=models.CASCADE)
     fuente = models.CharField(max_length=250, blank=True, null=True)
-    imagen_noticia = models.ImageField(upload_to='img/noticias/')
+    imagen_noticia = CloudinaryField('image', folder='noticias/')
 
