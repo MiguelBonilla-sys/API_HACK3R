@@ -4,8 +4,13 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission, User
 from django.contrib.contenttypes.models import ContentType
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
-from blog.models import Cursos, Integrantes, Proyectos, Noticias, AuditLog, Conferencias, OfertasEmpleo
-
+from blog.Models.CursosModel import Cursos
+from blog.Models.IntegrantesModel import Integrantes
+from blog.Models.ProyectosModel import Proyectos
+from blog.Models.NoticiasModel import Noticias
+from blog.Models.AuditLogModel import AuditLog
+from blog.Models.ConferenciasModel import Conferencias
+from blog.Models.OfertasEmpleoModel import OfertasEmpleo
 class Command(BaseCommand):
     help = 'Setup groups and permissions'
 
