@@ -56,3 +56,4 @@ class Command(BaseCommand):
             name='Eliminar ofertas expiradas',
             task='blog.tasks.eliminar_ofertas_expiradas',
         )
+        
