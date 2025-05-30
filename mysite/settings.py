@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'rest_auth',
     'rest_auth.registration',
     'corsheaders',  # Añadir corsheaders
+    'django_filters',  # Añadir django-filters para filtrado avanzado
     'blog',
     'django_celery_beat',  # Añadir django-celery-beat
     'drf_yasg',
@@ -55,6 +56,9 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # Añadir CorsMiddleware al principio
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Añadir whitenoise aquí
+    'blog.middleware.SecurityHeadersMiddleware',  # Headers de seguridad personalizados
+    'blog.middleware.RequestLoggingMiddleware',  # Logging de solicitudes
+    'blog.middleware.APIUsageMiddleware',  # Monitoreo de uso de API
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -85,11 +89,24 @@ TEMPLATES = [
 WSGI_APPLICATION = 'mysite.wsgi.application'
 
 # Django REST framework settings
-# ...existing code...
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.openapi.AutoSchema",
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour'
+    }
 }
-# ...existing code...
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -165,10 +182,21 @@ CORS_ALLOWED_ORIGINS = [
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_BEAT_SCHEDULE = {
-    # Ejemplo de tarea periódica
-    'sample_task': {
-        'task': 'myapp.tasks.sample_task',
-        'schedule': 3600.0,  # Ejecutar cada hora
+    # Tarea para eliminar ofertas expiradas cada día a las 2 AM
+    'eliminar_ofertas_expiradas': {
+        'task': 'blog.tasks.eliminar_ofertas_expiradas',
+        'schedule': 86400.0,  # Ejecutar cada 24 horas
+    },
+    # Generar reporte de estadísticas cada semana
+    'generar_reporte_estadisticas': {
+        'task': 'blog.tasks.generar_reporte_estadisticas',
+        'schedule': 604800.0,  # Ejecutar cada 7 días
+    },
+    # Limpiar logs antiguos cada mes
+    'limpiar_logs_antiguos': {
+        'task': 'blog.tasks.limpiar_logs_antiguos',
+        'schedule': 2592000.0,  # Ejecutar cada 30 días
+        'kwargs': {'dias': 30}
     },
 }
 
@@ -179,4 +207,79 @@ CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+}
+
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },        'json': {
+            'format': '{"level": "%(levelname)s", "time": "%(asctime)s", "module": "%(module)s", "message": "%(message)s"}',
+            'style': '%',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
+            'maxBytes': 1024*1024*10,  # 10 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        'api_usage_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'api_usage.log'),
+            'maxBytes': 1024*1024*5,  # 5 MB
+            'backupCount': 3,
+            'formatter': 'json',
+        },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'errors.log'),
+            'maxBytes': 1024*1024*10,  # 10 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console', 'error_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'blog': {
+            'handlers': ['file', 'console', 'error_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'api_usage': {
+            'handlers': ['api_usage_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'celery': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
 }
