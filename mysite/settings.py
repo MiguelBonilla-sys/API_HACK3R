@@ -203,28 +203,23 @@ if IS_VERCEL:
         
         CELERY_BROKER_URL = redis_url
         CELERY_RESULT_BACKEND = redis_url
-        
-        # Configuración específica para Upstash Redis
+          # Configuración específica para Upstash Redis
         CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
         CELERY_BROKER_TRANSPORT_OPTIONS = {
             'global_keyprefix': 'celery_',
             'retry_policy': {
                 'timeout': 5.0
-            }
-        }
-        print(f"✅ Redis configurado para Vercel: {upstash_host}")
+            }        }
         
     elif redis_url:
         # Si hay Redis URL directa disponible
         CELERY_BROKER_URL = redis_url
         CELERY_RESULT_BACKEND = redis_url
-        print(f"✅ Redis URL configurada para Vercel")
         
     else:
         # Sin Redis en Vercel - ejecutar tareas síncronamente
         CELERY_TASK_ALWAYS_EAGER = True
         CELERY_TASK_EAGER_PROPAGATES = True
-        print("⚠️  Redis no configurado en Vercel - Celery en modo síncrono")
 else:
     # Desarrollo local con Redis local
     CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
