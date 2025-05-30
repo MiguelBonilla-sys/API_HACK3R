@@ -7,9 +7,5 @@
     "numReplicas": 1,
     "sleepApplication": false,
     "restartPolicyType": "ON_FAILURE"
-  },
-  "variables": {
-    "PYTHONPATH": "/app",
-    "PORT": "8000"
   }
 }
