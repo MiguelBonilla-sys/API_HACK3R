@@ -155,34 +155,21 @@ class APIUsageMiddleware(MiddlewareMixin):
         if request.path.startswith('/api/'):
             user = getattr(request, 'user', AnonymousUser())
             
-            # En entornos serverless, usar logging más simple
-            if IS_SERVERLESS:
-                # Usar logger básico en Vercel
-                logger.info(
-                    f"API_USAGE: {request.method} {request.path} - "
-                    f"Status: {response.status_code} - "
-                    f"User: {user.username if not isinstance(user, AnonymousUser) else 'anonymous'}"
-                )
-            else:
-                # Registrar uso de API con logger específico en desarrollo
-                try:
-                    api_logger = logging.getLogger('api_usage')
-                    api_logger.info(
-                        json.dumps({
-                            'timestamp': time.time(),
-                            'method': request.method,
-                            'endpoint': request.path,
-                            'status_code': response.status_code,
-                            'user': user.username if not isinstance(user, AnonymousUser) else 'anonymous',
-                            'user_agent': request.META.get('HTTP_USER_AGENT', ''),
-                            'ip_address': self.get_client_ip(request),
-                            'query_params': dict(request.GET),
-                            'content_length': len(response.content) if hasattr(response, 'content') else 0
-                        })
-                    )
-                except Exception as e:
-                    # Fallback al logger principal si hay problemas
-                    logger.warning(f"Error en API logging: {e}")
+            # Registrar uso de API
+            api_logger = logging.getLogger('api_usage')
+            api_logger.info(
+                json.dumps({
+                    'timestamp': time.time(),
+                    'method': request.method,
+                    'endpoint': request.path,
+                    'status_code': response.status_code,
+                    'user': user.username if not isinstance(user, AnonymousUser) else 'anonymous',
+                    'user_agent': request.META.get('HTTP_USER_AGENT', ''),
+                    'ip_address': self.get_client_ip(request),
+                    'query_params': dict(request.GET),
+                    'content_length': len(response.content) if hasattr(response, 'content') else 0
+                })
+            )
         
         return response
     
