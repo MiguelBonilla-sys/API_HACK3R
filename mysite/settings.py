@@ -14,10 +14,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 from urllib.parse import urlparse
 
-load_dotenv()
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Cargar variables de entorno con prioridad al archivo .env
+env_path = BASE_DIR / '.env'
+load_dotenv(env_path, override=True)  # override=True da prioridad al archivo
 
 # Detectar si estamos en Vercel o entorno serverless
 IS_VERCEL = (
@@ -40,12 +42,28 @@ IS_PRODUCTION = IS_VERCEL or IS_RAILWAY or IS_RENDER or os.getenv('PRODUCTION') 
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-only-for-development')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.vercel.app', '.railway.app', '.onrender.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.vercel.app', '.railway.app', '.onrender.com', 'apihack3r-production.up.railway.app']
+
+# CSRF settings para Railway
+CSRF_TRUSTED_ORIGINS = [
+    'https://apihack3r-production.up.railway.app',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://*.railway.app',
+    'https://*.vercel.app',
+    'https://*.onrender.com',
+]
+
+# Session settings
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 
 # Application definition
@@ -191,7 +209,26 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://hackrlabs.vercel.app",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "https://apihack3r-production.up.railway.app",
+    "https://hackrlabs.vercel.app",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = False
+
+# Para el Django Admin, permitir todos los headers necesarios
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 
 # Configuración de Redis y Celery
