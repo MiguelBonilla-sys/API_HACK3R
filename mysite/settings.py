@@ -20,14 +20,24 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Detectar si estamos en Vercel o entorno serverless
-IS_VERCEL = os.getenv('VERCEL') == '1' or os.getenv('VERCEL_ENV') is not None
+IS_VERCEL = (
+    os.getenv('VERCEL') == '1' or 
+    os.getenv('VERCEL_ENV') is not None or
+    os.getenv('VERCEL_URL') is not None
+)
+
+# Debug: Imprimir variables de entorno relevantes de Vercel
+print(f"DEBUG - VERCEL: {os.getenv('VERCEL')}")
+print(f"DEBUG - VERCEL_ENV: {os.getenv('VERCEL_ENV')}")
+print(f"DEBUG - VERCEL_URL: {os.getenv('VERCEL_URL')}")
+print(f"DEBUG - IS_VERCEL: {IS_VERCEL}")
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET')
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -279,8 +289,10 @@ if IS_VERCEL:
                 'format': '{"level": "%(levelname)s", "time": "%(asctime)s", "module": "%(module)s", "message": "%(message)s"}',
                 'style': '%',
             },
-        },
-        'handlers': {
+        },        'handlers': {
+            'null': {
+                'class': 'logging.NullHandler',
+            },
             'console': {
                 'level': 'INFO',
                 'class': 'logging.StreamHandler',
@@ -336,8 +348,10 @@ else:
                 'format': '{"level": "%(levelname)s", "time": "%(asctime)s", "module": "%(module)s", "message": "%(message)s"}',
                 'style': '%',
             },
-        },
-        'handlers': {
+        },        'handlers': {
+            'null': {
+                'class': 'logging.NullHandler',
+            },
             'file': {
                 'level': 'INFO',
                 'class': 'logging.handlers.RotatingFileHandler',
