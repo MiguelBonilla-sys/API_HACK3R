@@ -26,15 +26,9 @@
     {
       "src": "/media/(.*)",
       "dest": "/media/$1"
-    },
-    {
+    },    {
       "src": "/(.*)",
       "dest": "mysite/wsgi.py"
     }
-  ],
-  "functions": {
-    "mysite/wsgi.py": {
-      "maxDuration": 10
-    }
-  }
+  ]
 }
