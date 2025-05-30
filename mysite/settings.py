@@ -26,6 +26,12 @@ IS_VERCEL = (
     os.getenv('VERCEL_URL') is not None
 )
 
+# Detectar si estamos en Railway
+IS_RAILWAY = os.getenv('RAILWAY_ENVIRONMENT') is not None
+
+# Detectar si estamos en Render
+IS_RENDER = os.getenv('RENDER') == 'True'
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -36,7 +42,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.vercel.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.vercel.app', '.railway.app', '.onrender.com']
 
 
 # Application definition
@@ -215,9 +221,19 @@ if IS_VERCEL:
         # Si hay Redis URL directa disponible
         CELERY_BROKER_URL = redis_url
         CELERY_RESULT_BACKEND = redis_url
-        
     else:
         # Sin Redis en Vercel - ejecutar tareas síncronamente
+        CELERY_TASK_ALWAYS_EAGER = True
+        CELERY_TASK_EAGER_PROPAGATES = True
+elif IS_RAILWAY or IS_RENDER:
+    # En Railway/Render - usar Redis URL directa
+    redis_url = os.getenv('REDIS_URL')
+    if redis_url:
+        CELERY_BROKER_URL = redis_url
+        CELERY_RESULT_BACKEND = redis_url
+        CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+    else:
+        # Fallback a ejecución síncrona si no hay Redis
         CELERY_TASK_ALWAYS_EAGER = True
         CELERY_TASK_EAGER_PROPAGATES = True
 else:
@@ -226,7 +242,7 @@ else:
     CELERY_RESULT_BACKEND = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 
 # Configuración de Celery Beat (solo en desarrollo local)
-if not IS_VERCEL:
+if not IS_VERCEL and not IS_RAILWAY and not IS_RENDER:
     CELERY_BEAT_SCHEDULE = {
         # Tarea para eliminar ofertas expiradas cada día a las 2 AM
         'eliminar_ofertas_expiradas': {
@@ -246,9 +262,14 @@ if not IS_VERCEL:
         },
     }
 else:
-    # En Vercel, deshabilitamos Celery
-    CELERY_TASK_ALWAYS_EAGER = True
-    CELERY_TASK_EAGER_PROPAGATES = True
+    # En Vercel/Railway/Render, usar configuración optimizada para producción
+    CELERY_BEAT_SCHEDULE = {
+        # Solo tareas esenciales en producción
+        'eliminar_ofertas_expiradas': {
+            'task': 'blog.tasks.eliminar_ofertas_expiradas',
+            'schedule': 86400.0,  # Ejecutar cada 24 horas
+        },
+    }
 
 # Cloud storage settings
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
