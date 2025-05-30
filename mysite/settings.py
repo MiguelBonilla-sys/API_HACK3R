@@ -26,12 +26,6 @@ IS_VERCEL = (
     os.getenv('VERCEL_URL') is not None
 )
 
-# Debug: Imprimir variables de entorno relevantes de Vercel
-print(f"DEBUG - VERCEL: {os.getenv('VERCEL')}")
-print(f"DEBUG - VERCEL_ENV: {os.getenv('VERCEL_ENV')}")
-print(f"DEBUG - VERCEL_URL: {os.getenv('VERCEL_URL')}")
-print(f"DEBUG - IS_VERCEL: {IS_VERCEL}")
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
