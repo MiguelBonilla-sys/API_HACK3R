@@ -15,11 +15,11 @@ colorama==0.4.6
 coreapi==2.3.3
 coreschema==0.0.4
 cron-descriptor==1.4.5
-Django
+Django==5.1.5
 django-celery-beat==2.7.0
 django-cloudinary-storage==0.3.0
 django-cors-headers==4.6.0
-django-filters==24.3
+django-filter==25.1
 django-rest-auth==0.9.5
 django-storages==1.14.4
 django-timezone-field==7.0
