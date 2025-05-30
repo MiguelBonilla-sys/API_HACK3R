@@ -19,6 +19,9 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Detectar si estamos en Vercel o entorno serverless
+IS_VERCEL = os.getenv('VERCEL') == '1' or os.getenv('VERCEL_ENV') is not None
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -178,27 +181,75 @@ CORS_ALLOWED_ORIGINS = [
     "http://hackrlabs.vercel.app",
 ]
 
-# Celery settings
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-CELERY_BEAT_SCHEDULE = {
-    # Tarea para eliminar ofertas expiradas cada día a las 2 AM
-    'eliminar_ofertas_expiradas': {
-        'task': 'blog.tasks.eliminar_ofertas_expiradas',
-        'schedule': 86400.0,  # Ejecutar cada 24 horas
-    },
-    # Generar reporte de estadísticas cada semana
-    'generar_reporte_estadisticas': {
-        'task': 'blog.tasks.generar_reporte_estadisticas',
-        'schedule': 604800.0,  # Ejecutar cada 7 días
-    },
-    # Limpiar logs antiguos cada mes
-    'limpiar_logs_antiguos': {
-        'task': 'blog.tasks.limpiar_logs_antiguos',
-        'schedule': 2592000.0,  # Ejecutar cada 30 días
-        'kwargs': {'dias': 30}
-    },
-}
+# Configuración de Redis y Celery
+if IS_VERCEL:
+    # En Vercel, construir URL de Redis desde variables de Upstash
+    upstash_host = os.getenv('UPSTASH_REDIS_HOST')
+    upstash_port = os.getenv('UPSTASH_REDIS_PORT', '6379')
+    upstash_token = os.getenv('UPSTASH_REDIS_REST_TOKEN')
+    upstash_ssl = os.getenv('UPSTASH_REDIS_SSL', 'False').lower() == 'true'
+    
+    # También verificar si hay URL directa
+    redis_url = os.getenv('REDIS_URL')
+    
+    if upstash_host and upstash_token:
+        # Construir URL para Upstash Redis
+        protocol = 'rediss' if upstash_ssl else 'redis'
+        redis_url = f"{protocol}://default:{upstash_token}@{upstash_host}:{upstash_port}"
+        
+        CELERY_BROKER_URL = redis_url
+        CELERY_RESULT_BACKEND = redis_url
+        
+        # Configuración específica para Upstash Redis
+        CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+        CELERY_BROKER_TRANSPORT_OPTIONS = {
+            'global_keyprefix': 'celery_',
+            'retry_policy': {
+                'timeout': 5.0
+            }
+        }
+        print(f"✅ Redis configurado para Vercel: {upstash_host}")
+        
+    elif redis_url:
+        # Si hay Redis URL directa disponible
+        CELERY_BROKER_URL = redis_url
+        CELERY_RESULT_BACKEND = redis_url
+        print(f"✅ Redis URL configurada para Vercel")
+        
+    else:
+        # Sin Redis en Vercel - ejecutar tareas síncronamente
+        CELERY_TASK_ALWAYS_EAGER = True
+        CELERY_TASK_EAGER_PROPAGATES = True
+        print("⚠️  Redis no configurado en Vercel - Celery en modo síncrono")
+else:
+    # Desarrollo local con Redis local
+    CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+    CELERY_RESULT_BACKEND = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+
+# Configuración de Celery Beat (solo en desarrollo local)
+if not IS_VERCEL:
+    CELERY_BEAT_SCHEDULE = {
+        # Tarea para eliminar ofertas expiradas cada día a las 2 AM
+        'eliminar_ofertas_expiradas': {
+            'task': 'blog.tasks.eliminar_ofertas_expiradas',
+            'schedule': 86400.0,  # Ejecutar cada 24 horas
+        },
+        # Generar reporte de estadísticas cada semana
+        'generar_reporte_estadisticas': {
+            'task': 'blog.tasks.generar_reporte_estadisticas',
+            'schedule': 604800.0,  # Ejecutar cada 7 días
+        },
+        # Limpiar logs antiguos cada mes
+        'limpiar_logs_antiguos': {
+            'task': 'blog.tasks.limpiar_logs_antiguos',
+            'schedule': 2592000.0,  # Ejecutar cada 30 días
+            'kwargs': {'dias': 30}
+        },
+    }
+else:
+    # En Vercel, deshabilitamos Celery
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True
 
 # Cloud storage settings
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
@@ -210,76 +261,136 @@ CLOUDINARY_STORAGE = {
 }
 
 # Logging configuration
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
+if IS_VERCEL:
+    # Configuración para Vercel (solo consola)
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+                'style': '{',
+            },
+            'simple': {
+                'format': '{levelname} {message}',
+                'style': '{',
+            },
+            'json': {
+                'format': '{"level": "%(levelname)s", "time": "%(asctime)s", "module": "%(module)s", "message": "%(message)s"}',
+                'style': '%',
+            },
         },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },        'json': {
-            'format': '{"level": "%(levelname)s", "time": "%(asctime)s", "module": "%(module)s", "message": "%(message)s"}',
-            'style': '%',
+        'handlers': {
+            'console': {
+                'level': 'INFO',
+                'class': 'logging.StreamHandler',
+                'formatter': 'verbose',
+            },
+            'console_json': {
+                'level': 'INFO',
+                'class': 'logging.StreamHandler',
+                'formatter': 'json',
+            },
         },
-    },
-    'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
-            'maxBytes': 1024*1024*10,  # 10 MB
-            'backupCount': 5,
-            'formatter': 'verbose',
+        'root': {
+            'handlers': ['console'],
         },
-        'api_usage_file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'api_usage.log'),
-            'maxBytes': 1024*1024*5,  # 5 MB
-            'backupCount': 3,
-            'formatter': 'json',
+        'loggers': {
+            'django': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'blog': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'api_usage': {
+                'handlers': ['console_json'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'celery': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
         },
-        'error_file': {
-            'level': 'ERROR',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'errors.log'),
-            'maxBytes': 1024*1024*10,  # 10 MB
-            'backupCount': 5,
-            'formatter': 'verbose',
+    }
+else:
+    # Configuración para desarrollo local (con archivos)
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+                'style': '{',
+            },
+            'simple': {
+                'format': '{levelname} {message}',
+                'style': '{',
+            },
+            'json': {
+                'format': '{"level": "%(levelname)s", "time": "%(asctime)s", "module": "%(module)s", "message": "%(message)s"}',
+                'style': '%',
+            },
         },
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
+        'handlers': {
+            'file': {
+                'level': 'INFO',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
+                'maxBytes': 1024*1024*10,  # 10 MB
+                'backupCount': 5,
+                'formatter': 'verbose',
+            },
+            'api_usage_file': {
+                'level': 'INFO',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': os.path.join(BASE_DIR, 'logs', 'api_usage.log'),
+                'maxBytes': 1024*1024*5,  # 5 MB
+                'backupCount': 3,
+                'formatter': 'json',
+            },
+            'error_file': {
+                'level': 'ERROR',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': os.path.join(BASE_DIR, 'logs', 'errors.log'),
+                'maxBytes': 1024*1024*10,  # 10 MB
+                'backupCount': 5,
+                'formatter': 'verbose',
+            },
+            'console': {
+                'level': 'DEBUG',
+                'class': 'logging.StreamHandler',
+                'formatter': 'simple',
+            },
         },
-    },
-    'root': {
-        'handlers': ['console'],
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file', 'console', 'error_file'],
-            'level': 'INFO',
-            'propagate': False,
+        'root': {
+            'handlers': ['console'],
         },
-        'blog': {
-            'handlers': ['file', 'console', 'error_file'],
-            'level': 'DEBUG',
-            'propagate': False,
+        'loggers': {
+            'django': {
+                'handlers': ['file', 'console', 'error_file'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'blog': {
+                'handlers': ['file', 'console', 'error_file'],
+                'level': 'DEBUG',
+                'propagate': False,
+            },
+            'api_usage': {
+                'handlers': ['api_usage_file'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'celery': {
+                'handlers': ['file', 'console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
         },
-        'api_usage': {
-            'handlers': ['api_usage_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'celery': {
-            'handlers': ['file', 'console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-    },
-}
+    }

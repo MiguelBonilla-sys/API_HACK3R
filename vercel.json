@@ -1,11 +1,17 @@
 {
   "version": 2,
   "public": true,
+  "env": {
+    "VERCEL": "1"
+  },
   "builds": [
     {
       "src": "mysite/wsgi.py",
       "use": "@vercel/python",
-      "config": { "pythonVersion": "3.12" }
+      "config": { 
+        "pythonVersion": "3.12",
+        "maxLambdaSize": "10mb"
+      }
     },
     {
       "src": "staticfiles/**/*",
@@ -25,5 +31,10 @@
       "src": "/(.*)",
       "dest": "mysite/wsgi.py"
     }
-  ]
+  ],
+  "functions": {
+    "mysite/wsgi.py": {
+      "maxDuration": 10
+    }
+  }
 }

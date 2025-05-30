@@ -14,6 +14,9 @@ from django.contrib.auth.models import AnonymousUser
 
 logger = logging.getLogger(__name__)
 
+# Detectar si estamos en entorno serverless
+IS_SERVERLESS = getattr(settings, 'IS_VERCEL', False)
+
 
 class RequestLoggingMiddleware(MiddlewareMixin):
     """
@@ -25,8 +28,7 @@ class RequestLoggingMiddleware(MiddlewareMixin):
     - Dirección IP
     - User-Agent
     - Tiempo de respuesta
-    - Código de estado HTTP
-    """
+    - Código de estado HTTP    """
     
     def process_request(self, request):
         """
@@ -37,18 +39,20 @@ class RequestLoggingMiddleware(MiddlewareMixin):
         """
         request.start_time = time.time()
         
-        # Obtener información del cliente
-        user_agent = request.META.get('HTTP_USER_AGENT', 'Unknown')
-        ip_address = self.get_client_ip(request)
-        user = getattr(request, 'user', AnonymousUser())
-        
-        # Registrar solicitud entrante
-        logger.info(
-            f"REQUEST: {request.method} {request.get_full_path()} | "
-            f"User: {user.username if not isinstance(user, AnonymousUser) else 'Anonymous'} | "
-            f"IP: {ip_address} | "
-            f"UA: {user_agent[:100]}"
-        )
+        # En entornos serverless, limitamos el logging para mejor performance
+        if not IS_SERVERLESS:
+            # Obtener información del cliente
+            user_agent = request.META.get('HTTP_USER_AGENT', 'Unknown')
+            ip_address = self.get_client_ip(request)
+            user = getattr(request, 'user', AnonymousUser())
+            
+            # Registrar solicitud entrante
+            logger.info(
+                f"REQUEST: {request.method} {request.get_full_path()} | "
+                f"User: {user.username if not isinstance(user, AnonymousUser) else 'Anonymous'} | "
+                f"IP: {ip_address} | "
+                f"UA: {user_agent[:100]}"
+            )
         
         return None
     
