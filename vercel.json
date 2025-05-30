@@ -2,7 +2,8 @@
   "version": 2,
   "public": true,
   "env": {
-    "VERCEL": "1"
+    "VERCEL": "1",
+    "VERCEL_ENV": "production"
   },
   "builds": [
     {

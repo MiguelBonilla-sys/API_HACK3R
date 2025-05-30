@@ -27,7 +27,7 @@ IS_VERCEL = os.getenv('VERCEL') == '1' or os.getenv('VERCEL_ENV') is not None
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET')
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -290,6 +290,10 @@ if IS_VERCEL:
                 'level': 'INFO',
                 'class': 'logging.StreamHandler',
                 'formatter': 'json',
+            },
+            # Agregar handler dummy para compatibilidad
+            'null': {
+                'class': 'logging.NullHandler',
             },
         },
         'root': {
