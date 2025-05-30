@@ -1,3 +1,3 @@
-web: gunicorn mysite.wsgi --bind 0.0.0.0:$PORT
+web: chmod +x start.sh && ./start.sh
 worker: celery -A mysite worker --loglevel=info
 beat: celery -A mysite beat --loglevel=info

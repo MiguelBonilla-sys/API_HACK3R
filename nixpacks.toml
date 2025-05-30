@@ -1,0 +1,30 @@
+[build]
+# Forzar detección como proyecto Python
+providers = ["python"]
+
+[variables]
+# Variables necesarias para Django
+PYTHONPATH = "/app"
+DJANGO_SETTINGS_MODULE = "mysite.settings"
+RAILWAY_ENVIRONMENT = "production"
+PRODUCTION = "True"
+
+[python]
+# Versión de Python a usar
+version = "3.12"
+
+[phases.setup]
+# Comandos de setup
+cmds = [
+    "pip install -r requirements.txt"
+]
+
+[phases.build]
+# Comandos de build
+cmds = [
+    "python manage.py collectstatic --noinput"
+]
+
+[start]
+# Comando para iniciar la aplicación
+cmd = "chmod +x start.sh && ./start.sh"

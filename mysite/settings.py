@@ -32,6 +32,9 @@ IS_RAILWAY = os.getenv('RAILWAY_ENVIRONMENT') is not None
 # Detectar si estamos en Render
 IS_RENDER = os.getenv('RENDER') == 'True'
 
+# Detectar si estamos en cualquier entorno de producción
+IS_PRODUCTION = IS_VERCEL or IS_RAILWAY or IS_RENDER or os.getenv('PRODUCTION') == 'True'
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -281,8 +284,8 @@ CLOUDINARY_STORAGE = {
 }
 
 # Logging configuration
-if IS_VERCEL:
-    # Configuración para Vercel (solo consola)
+if IS_PRODUCTION:
+    # Configuración para entornos de producción (solo consola)
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
@@ -342,6 +345,10 @@ if IS_VERCEL:
     }
 else:
     # Configuración para desarrollo local (con archivos)
+    # Crear directorio de logs si no existe
+    logs_dir = os.path.join(BASE_DIR, 'logs')
+    os.makedirs(logs_dir, exist_ok=True)
+    
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
