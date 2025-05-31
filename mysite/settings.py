@@ -75,10 +75,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',  # Requerido por allauth
     'rest_framework',  # Esto es para agregar REST Framework
     'rest_framework.authtoken',  # Es para agregar el token de autenticación
-    'rest_auth',
-    'rest_auth.registration',
+    'dj_rest_auth',  # Usando dj-rest-auth en lugar de rest_auth
+    'allauth',  # Django allauth
+    'allauth.account',  # Para cuentas de usuario
+    'allauth.socialaccount',  # Para cuentas sociales
+    'dj_rest_auth.registration',  # Para registro de usuarios
     'corsheaders',  # Añadir corsheaders
     'django_filters',  # Añadir django-filters para filtrado avanzado
     'blog',
@@ -97,6 +101,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',  # Middleware de allauth
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -125,6 +130,13 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 # Django REST framework settings
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.openapi.AutoSchema",
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_FILTER_BACKENDS': [
@@ -462,3 +474,28 @@ else:
             },
         },
     }
+
+# REST AUTH Settings
+REST_AUTH = {
+    'USE_JWT': False,
+    'SESSION_LOGIN': True,
+    'LOGIN_SERIALIZER': 'dj_rest_auth.serializers.LoginSerializer',
+    'TOKEN_SERIALIZER': 'dj_rest_auth.serializers.TokenSerializer',
+    'USER_DETAILS_SERIALIZER': 'dj_rest_auth.serializers.UserDetailsSerializer',
+    'PASSWORD_RESET_SERIALIZER': 'dj_rest_auth.serializers.PasswordResetSerializer',
+    'PASSWORD_RESET_CONFIRM_SERIALIZER': 'dj_rest_auth.serializers.PasswordResetConfirmSerializer',
+    'PASSWORD_CHANGE_SERIALIZER': 'dj_rest_auth.serializers.PasswordChangeSerializer',
+}
+
+# Login redirect settings
+LOGIN_URL = '/auth/login/'
+LOGIN_REDIRECT_URL = '/api/docs/'
+LOGOUT_REDIRECT_URL = '/api/docs/'
+
+# Site ID for django-allauth
+SITE_ID = 1
+
+# Account settings
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_AUTHENTICATION_METHOD = 'username'
+ACCOUNT_EMAIL_REQUIRED = False

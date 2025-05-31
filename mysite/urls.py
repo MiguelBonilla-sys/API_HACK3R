@@ -23,6 +23,8 @@ from django.views.generic.base import RedirectView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('blog.urls')),
+    path('auth/', include('dj_rest_auth.urls')),  # Endpoints de autenticación
+    path('auth/registration/', include('dj_rest_auth.registration.urls')),  # Registro de usuarios
     path('accounts/logout/', RedirectView.as_view(url='/api/docs/', permanent=False)),
 ]
 
