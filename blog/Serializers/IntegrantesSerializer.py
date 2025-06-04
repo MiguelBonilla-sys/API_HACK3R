@@ -20,21 +20,18 @@ class IntegrantesSerializer(serializers.ModelSerializer):
         model = Integrantes
         fields = [
             'idintegrantes',
-            'nombres',
-            'apellidos', 
-            'celular',
+            'nombre_integrante',
+            'semestre', 
             'correo',
-            'linkgithub',
-            'linklinkedin',
-            'linkinstagram',
-            'linktwitter',
+            'link_git',
             'imagen',
             'estado',
+            'reseña',
             'creador',
             'creador_username'
         ]
         
-    def validate_nombres(self, value):
+    def validate_nombre_integrante(self, value):
         """Validar que el nombre no esté vacío."""
         if not value or not value.strip():
             raise serializers.ValidationError("El nombre no puede estar vacío.")
@@ -42,12 +39,10 @@ class IntegrantesSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("El nombre debe tener al menos 2 caracteres.")
         return value.strip()
     
-    def validate_apellidos(self, value):
-        """Validar que los apellidos no estén vacíos."""
+    def validate_semestre(self, value):
+        """Validar que el semestre sea válido."""
         if not value or not value.strip():
-            raise serializers.ValidationError("Los apellidos no pueden estar vacíos.")
-        if len(value.strip()) < 2:
-            raise serializers.ValidationError("Los apellidos deben tener al menos 2 caracteres.")
+            raise serializers.ValidationError("El semestre es requerido.")
         return value.strip()
     
     def validate_correo(self, value):
@@ -55,3 +50,19 @@ class IntegrantesSerializer(serializers.ModelSerializer):
         if not value or not value.strip():
             raise serializers.ValidationError("El correo electrónico es requerido.")
         return value.strip().lower()
+    
+    def validate_link_git(self, value):
+        """Validar que el link de GitHub sea válido."""
+        if not value or not value.strip():
+            raise serializers.ValidationError("El enlace de GitHub es requerido.")
+        if not value.startswith('https://github.com/'):
+            raise serializers.ValidationError("Debe ser una URL válida de GitHub.")
+        return value.strip()
+    
+    def validate_reseña(self, value):
+        """Validar que la reseña no esté vacía."""
+        if not value or not value.strip():
+            raise serializers.ValidationError("La reseña es requerida.")
+        if len(value.strip()) < 10:
+            raise serializers.ValidationError("La reseña debe tener al menos 10 caracteres.")
+        return value.strip()
