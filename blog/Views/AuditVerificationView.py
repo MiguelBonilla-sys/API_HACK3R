@@ -10,13 +10,14 @@ from rest_framework import status
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Count
+from typing import Optional, Dict, Any, List
 
 from blog.Models.AuditLogModel import AuditLog
 from blog.Serializers.AuditLogSerializer import AuditLogSerializer
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def audit_verification_status(request):
+def audit_verification_status(request) -> Response:
     """
     Endpoint para verificar el estado de la auditoría.
     
@@ -58,9 +59,9 @@ def audit_verification_status(request):
     ]
     
     tables_with_logs = set(item['table_name'] for item in logs_por_tabla)
-    coverage = len(tables_with_logs & set(expected_tables)) / len(expected_tables) * 100
+    coverage: float = len(tables_with_logs & set(expected_tables)) / len(expected_tables) * 100
     
-    data = {
+    data: Dict[str, Any] = {
         'status': 'operational' if total_logs > 0 else 'inactive',
         'total_logs': total_logs,
         'logs_24_horas': logs_24h,
@@ -76,7 +77,7 @@ def audit_verification_status(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def audit_logs_simple(request):
+def audit_logs_simple(request) -> Response:
     """
     Endpoint simplificado para obtener logs de auditoría.
     
@@ -86,9 +87,13 @@ def audit_logs_simple(request):
         - type: filtrar por tipo de operación
     """
     
-    limit = int(request.GET.get('limit', 20))
-    table_filter = request.GET.get('table')
-    type_filter = request.GET.get('type')
+    try:
+        limit: int = int(request.GET.get('limit', 20))
+    except (ValueError, TypeError):
+        limit = 20
+    
+    table_filter: Optional[str] = request.GET.get('table')
+    type_filter: Optional[str] = request.GET.get('type')
     
     queryset = AuditLog.objects.all()
     
@@ -101,10 +106,10 @@ def audit_logs_simple(request):
     logs = queryset.order_by('-timestamp')[:limit]
     
     # Formato simplificado para el frontend
-    logs_data = []
+    logs_data: List[Dict[str, Any]] = []
     for log in logs:
         logs_data.append({
-            'id': log.id,
+            'id': log.pk,  # Usar pk en lugar de id para mayor claridad
             'timestamp': log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
             'usuario': log.user.username,
             'tabla': log.table_name.replace('blog_', ''),  # Simplificar nombre
@@ -121,7 +126,7 @@ def audit_logs_simple(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def test_audit_trigger(request):
+def test_audit_trigger(request) -> Response:
     """
     Endpoint para probar triggers desde el frontend.
     Crea una conferencia de prueba y verifica que se registre.
@@ -148,28 +153,38 @@ def test_audit_trigger(request):
         
         if logs_after > logs_before:
             # Obtener el log creado
-            new_log = AuditLog.objects.order_by('-timestamp').first()
+            new_log: Optional[AuditLog] = AuditLog.objects.order_by('-timestamp').first()
             
             # Limpiar - eliminar la conferencia de prueba
             conferencia.delete()
             
             logs_final = AuditLog.objects.count()
             
-            return Response({
-                'status': 'success',
-                'message': 'Trigger funcionando correctamente',
-                'logs_before': logs_before,
-                'logs_after': logs_after,
-                'logs_final': logs_final,
-                'created_log': {
-                    'id': new_log.id,
-                    'timestamp': new_log.timestamp,
-                    'table': new_log.table_name,
-                    'action': new_log.change_type,
-                    'user': new_log.user.username
-                },
-                'triggers_tested': ['CREATE', 'DELETE']
-            }, status=status.HTTP_200_OK)
+            # Verificar que el log existe antes de acceder a sus atributos
+            if new_log is not None:
+                return Response({
+                    'status': 'success',
+                    'message': 'Trigger funcionando correctamente',
+                    'logs_before': logs_before,
+                    'logs_after': logs_after,
+                    'logs_final': logs_final,
+                    'created_log': {
+                        'id': new_log.pk,  # Usar pk en lugar de id
+                        'timestamp': new_log.timestamp.isoformat(),
+                        'table': new_log.table_name,
+                        'action': new_log.change_type,
+                        'user': new_log.user.username
+                    },
+                    'triggers_tested': ['CREATE', 'DELETE']
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'status': 'error',
+                    'message': 'Log creado pero no se pudo recuperar',
+                    'logs_before': logs_before,
+                    'logs_after': logs_after,
+                    'logs_final': logs_final
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             # Limpiar en caso de fallo
             conferencia.delete()
