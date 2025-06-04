@@ -13,29 +13,28 @@ class OfertasEmpleoSerializer(serializers.ModelSerializer):
     creador = serializers.PrimaryKeyRelatedField(read_only=True)
     creador_username = serializers.CharField(source='creador.username', read_only=True)
     idoferta = serializers.IntegerField(read_only=True)
-    fecha_creacion = serializers.DateTimeField(read_only=True)
+    fecha_publicacion = serializers.DateTimeField(read_only=True)
+    
+    # Campo calculado
+    is_expired = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = OfertasEmpleo
         fields = [
             'idoferta',
-            'titulo',
+            'titulo_empleo',
             'empresa',
-            'descripcion',
-            'ubicacion',
-            'salario',
-            'modalidad_trabajo',
-            'tipo_contrato',
-            'fecha_limite',
-            'fecha_creacion',
+            'descripcion_empleo',
+            'fecha_publicacion',
+            'fecha_expiracion',
             'imagen',
-            'requisitos',
-            'contacto',
+            'link_oferta',
             'creador',
-            'creador_username'
+            'creador_username',
+            'is_expired'
         ]
         
-    def validate_titulo(self, value):
+    def validate_titulo_empleo(self, value):
         """Validar que el título no esté vacío."""
         if not value or not value.strip():
             raise serializers.ValidationError("El título de la oferta no puede estar vacío.")
@@ -49,10 +48,16 @@ class OfertasEmpleoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("El nombre de la empresa es requerido.")
         return value.strip()
     
-    def validate_descripcion(self, value):
+    def validate_descripcion_empleo(self, value):
         """Validar que la descripción no esté vacía."""
         if not value or not value.strip():
             raise serializers.ValidationError("La descripción de la oferta es requerida.")
         if len(value.strip()) < 20:
             raise serializers.ValidationError("La descripción debe tener al menos 20 caracteres.")
+        return value.strip()
+    
+    def validate_link_oferta(self, value):
+        """Validar que el link sea una URL válida."""
+        if not value or not value.strip():
+            raise serializers.ValidationError("El link de la oferta es requerido.")
         return value.strip()

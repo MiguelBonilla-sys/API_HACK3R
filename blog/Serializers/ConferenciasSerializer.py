@@ -19,11 +19,11 @@ class ConferenciasSerializer(serializers.ModelSerializer):
         fields = [
             'idconferencia',
             'nombre_conferencia',
+            'ponente_conferencia',
             'fecha_conferencia',
-            'lugar_conferencia',
             'descripcion_conferencia',
-            'link_conferencia',
             'imagen_conferencia',
+            'link_conferencia',
             'creador',
             'creador_username'
         ]
@@ -36,10 +36,24 @@ class ConferenciasSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("El nombre debe tener al menos 5 caracteres.")
         return value.strip()
     
+    def validate_ponente_conferencia(self, value):
+        """Validar que el ponente no esté vacío."""
+        if not value or not value.strip():
+            raise serializers.ValidationError("El nombre del ponente es requerido.")
+        if len(value.strip()) < 2:
+            raise serializers.ValidationError("El nombre del ponente debe tener al menos 2 caracteres.")
+        return value.strip()
+    
     def validate_descripcion_conferencia(self, value):
         """Validar que la descripción no esté vacía."""
         if not value or not value.strip():
             raise serializers.ValidationError("La descripción de la conferencia es requerida.")
         if len(value.strip()) < 10:
             raise serializers.ValidationError("La descripción debe tener al menos 10 caracteres.")
+        return value.strip()
+    
+    def validate_link_conferencia(self, value):
+        """Validar que el link sea una URL válida."""
+        if not value or not value.strip():
+            raise serializers.ValidationError("El link de la conferencia es requerido.")
         return value.strip()
