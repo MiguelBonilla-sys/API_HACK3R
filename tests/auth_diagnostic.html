@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico de Endpoints - Django Auth</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        .endpoint {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .test-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #2980b9;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background: #e9ecef;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .code-example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .summary {
+            background: #e8f5e8;
+            border: 2px solid #28a745;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnóstico de Endpoints de Autenticación</h1>
+        
+        <div class="summary">
+            <h2>📊 Estado General</h2>
+            <div id="server-status">Verificando servidor...</div>
+            <div id="cors-status">Verificando CORS...</div>
+        </div>
+
+        <h2>🎯 Endpoints de Autenticación</h2>
+        
+        <div class="endpoint">
+            <h3>POST /auth/login/ <span id="login-status" class="status">Verificando...</span></h3>
+            <p><strong>Descripción:</strong> Iniciar sesión con username y password</p>
+            <button class="test-button" onclick="testLogin()">Probar Login</button>
+            <button class="test-button" onclick="testLoginWithValidCredentials()">Probar con Credenciales Válidas</button>
+            <div id="login-result" class="result" style="display:none;"></div>
+            
+            <div class="code-example">
+<strong>Ejemplo JavaScript:</strong>
+fetch('http://127.0.0.1:8000/auth/login/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'user', password: 'pass' })
+})
+.then(response => response.json())
+.then(data => console.log(data));
+            </div>
+        </div>
+
+        <div class="endpoint">
+            <h3>GET /auth/user/ <span id="user-status" class="status">Verificando...</span></h3>
+            <p><strong>Descripción:</strong> Obtener perfil del usuario autenticado</p>
+            <button class="test-button" onclick="testUserProfile()">Probar (sin token)</button>
+            <div id="user-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="endpoint">
+            <h3>POST /auth/logout/ <span id="logout-status" class="status">Verificando...</span></h3>
+            <p><strong>Descripción:</strong> Cerrar sesión</p>
+            <button class="test-button" onclick="testLogout()">Probar Logout</button>
+            <div id="logout-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="endpoint">
+            <h3>POST /auth/registration/ <span id="register-status" class="status">Verificando...</span></h3>
+            <p><strong>Descripción:</strong> Registrar nuevo usuario</p>
+            <button class="test-button" onclick="testRegistration()">Probar Registro</button>
+            <div id="register-result" class="result" style="display:none;"></div>
+        </div>
+
+        <h2>🛠️ Solución de Problemas</h2>
+        <div class="endpoint">
+            <h3>Si recibes error 404:</h3>
+            <ol>
+                <li>Verifica que Django esté corriendo: <a href="http://127.0.0.1:8000/admin/" target="_blank">http://127.0.0.1:8000/admin/</a></li>
+                <li>Confirma la URL base: <code>http://127.0.0.1:8000</code></li>
+                <li>Verifica el método HTTP (POST para login)</li>
+                <li>Revisa el Network tab en DevTools</li>
+            </ol>
+        </div>
+
+        <div id="debug-info" style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+            <h3>🔧 Información de Debug</h3>
+            <p><strong>URL Base:</strong> <span id="base-url">http://127.0.0.1:8000</span></p>
+            <p><strong>Timestamp:</strong> <span id="timestamp"></span></p>
+            <p><strong>User Agent:</strong> <span id="user-agent"></span></p>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://127.0.0.1:8000';
+        
+        // Actualizar información de debug
+        document.getElementById('timestamp').textContent = new Date().toISOString();
+        document.getElementById('user-agent').textContent = navigator.userAgent;
+
+        // Función para mostrar resultado
+        function showResult(elementId, content, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.textContent = content;
+            element.style.backgroundColor = isError ? '#f8d7da' : '#d4edda';
+            element.style.color = isError ? '#721c24' : '#155724';
+        }
+
+        // Función para actualizar status
+        function updateStatus(elementId, text, type = 'success') {
+            const element = document.getElementById(elementId);
+            element.textContent = text;
+            element.className = `status ${type}`;
+        }
+
+        // Verificar servidor al cargar
+        async function checkServer() {
+            try {
+                const response = await fetch(`${BASE_URL}/admin/`);
+                updateStatus('server-status', '✅ Servidor Django corriendo', 'success');
+                checkCORS();
+            } catch (error) {
+                updateStatus('server-status', '❌ Servidor Django no disponible', 'error');
+            }
+        }
+
+        // Verificar CORS
+        async function checkCORS() {
+            try {
+                const response = await fetch(`${BASE_URL}/auth/login/`, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': window.location.origin
+                    }
+                });
+                
+                if (response.headers.get('access-control-allow-origin')) {
+                    updateStatus('cors-status', '✅ CORS configurado correctamente', 'success');
+                } else {
+                    updateStatus('cors-status', '⚠️ CORS no detectado', 'warning');
+                }
+            } catch (error) {
+                updateStatus('cors-status', '❌ Error verificando CORS', 'error');
+            }
+        }
+
+        // Test Login
+        async function testLogin() {
+            try {
+                const response = await fetch(`${BASE_URL}/auth/login/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: 'test',
+                        password: 'test'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateStatus('login-status', '✅ Funcionando', 'success');
+                    showResult('login-result', `Status: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    updateStatus('login-status', '⚠️ Credenciales inválidas (normal)', 'warning');
+                    showResult('login-result', `Status: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`);
+                }
+            } catch (error) {
+                updateStatus('login-status', '❌ Error de conexión', 'error');
+                showResult('login-result', `Error: ${error.message}`, true);
+            }
+        }
+
+        // Test Login con credenciales válidas
+        async function testLoginWithValidCredentials() {
+            try {
+                const response = await fetch(`${BASE_URL}/auth/login/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: 'testuser123',
+                        password: 'testpass123!'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateStatus('login-status', '✅ Login exitoso', 'success');
+                    showResult('login-result', `Status: ${response.status}\nToken recibido: ${data.key}\n\n¡ÉXITO! El login está funcionando correctamente.`);
+                } else {
+                    showResult('login-result', `Status: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`);
+                }
+            } catch (error) {
+                updateStatus('login-status', '❌ Error de conexión', 'error');
+                showResult('login-result', `Error: ${error.message}`, true);
+            }
+        }
+
+        // Test User Profile
+        async function testUserProfile() {
+            try {
+                const response = await fetch(`${BASE_URL}/auth/user/`);
+                const data = await response.json();
+                
+                if (response.status === 401) {
+                    updateStatus('user-status', '✅ Funcionando (requiere auth)', 'success');
+                    showResult('user-result', `Status: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}\n\n✅ Correcto: Requiere autenticación.`);
+                } else {
+                    showResult('user-result', `Status: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`);
+                }
+            } catch (error) {
+                updateStatus('user-status', '❌ Error de conexión', 'error');
+                showResult('user-result', `Error: ${error.message}`, true);
+            }
+        }
+
+        // Test Logout
+        async function testLogout() {
+            try {
+                const response = await fetch(`${BASE_URL}/auth/logout/`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateStatus('logout-status', '✅ Funcionando', 'success');
+                    showResult('logout-result', `Status: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    showResult('logout-result', `Status: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`);
+                }
+            } catch (error) {
+                updateStatus('logout-status', '❌ Error de conexión', 'error');
+                showResult('logout-result', `Error: ${error.message}`, true);
+            }
+        }
+
+        // Test Registration
+        async function testRegistration() {
+            const randomNum = Math.floor(Math.random() * 10000);
+            try {
+                const response = await fetch(`${BASE_URL}/auth/registration/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: `testuser${randomNum}`,
+                        email: `test${randomNum}@example.com`,
+                        password1: 'testpass123!',
+                        password2: 'testpass123!'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.status === 201) {
+                    updateStatus('register-status', '✅ Funcionando', 'success');
+                    showResult('register-result', `Status: ${response.status}\nUsuario creado: testuser${randomNum}\nToken: ${data.key}`);
+                } else {
+                    showResult('register-result', `Status: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`);
+                }
+            } catch (error) {
+                updateStatus('register-status', '❌ Error de conexión', 'error');
+                showResult('register-result', `Error: ${error.message}`, true);
+            }
+        }
+
+        // Verificar servidor al cargar la página
+        checkServer();
+    </script>
+</body>
+</html>

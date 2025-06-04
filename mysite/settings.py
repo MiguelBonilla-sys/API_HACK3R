@@ -45,7 +45,8 @@ IS_PRODUCTION = IS_VERCEL or IS_RAILWAY or IS_RENDER or os.getenv('PRODUCTION') 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-only-for-development')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+# Para desarrollo local, permitir DEBUG=True por defecto si no está en producción
+DEBUG = os.getenv('DEBUG', 'True' if not IS_PRODUCTION else 'False').lower() == 'true'
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.vercel.app', '.railway.app', '.onrender.com', 'apihack3r-production.up.railway.app']
 
