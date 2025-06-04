@@ -496,7 +496,7 @@ LOGOUT_REDIRECT_URL = '/api/docs/'
 # Site ID for django-allauth
 SITE_ID = 1
 
-# Account settings
+# Account settings (nueva configuración para evitar warnings)
 ACCOUNT_EMAIL_VERIFICATION = 'none'
-ACCOUNT_AUTHENTICATION_METHOD = 'username'
-ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_LOGIN_METHODS = ['username']  # Reemplaza ACCOUNT_AUTHENTICATION_METHOD
+ACCOUNT_SIGNUP_FIELDS = ['username*', 'password1*', 'password2*']  # Reemplaza ACCOUNT_EMAIL_REQUIRED
