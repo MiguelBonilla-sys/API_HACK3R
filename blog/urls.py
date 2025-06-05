@@ -10,7 +10,7 @@ from blog.Views.IntegrantesView import IntegrantesViewSet
 from blog.Views.NoticiasView import NoticiasViewSet
 from blog.Views.OfertasEmpleoView import OfertasEmpleoViewSet
 from blog.Views.ProyectosView import ProyectosViewSet
-from blog.Views.AuthView import user_profile, update_profile, check_auth_status, get_user_permissions
+from blog.Views.AuthView import user_profile, update_profile, check_auth_status
 from blog.Views.AuditVerificationView import audit_verification_status, audit_logs_simple, test_audit_trigger
 
 router = routers.DefaultRouter()
@@ -39,7 +39,6 @@ urlpatterns = [
     path('profile/', user_profile, name='user-profile'),
     path('profile/update/', update_profile, name='update-profile'),
     path('auth-status/', check_auth_status, name='auth-status'),
-    path('auth/permissions/', get_user_permissions, name='user-permissions'),
     # Endpoints de verificación de auditoría
     path('audit/status/', audit_verification_status, name='audit-status'),
     path('audit/logs/', audit_logs_simple, name='audit-logs-simple'),
