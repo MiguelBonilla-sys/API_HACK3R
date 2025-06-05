@@ -111,7 +111,7 @@ def audit_logs_simple(request) -> Response:
         logs_data.append({
             'id': log.pk,  # Usar pk en lugar de id para mayor claridad
             'timestamp': log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
-            'usuario': log.user.username,
+            'usuario': log.user.username if log.user else 'Usuario eliminado',
             'tabla': log.table_name.replace('blog_', ''),  # Simplificar nombre
             'accion': log.change_type,
             'record_id': log.affected_record_id,
@@ -173,7 +173,7 @@ def test_audit_trigger(request) -> Response:
                         'timestamp': new_log.timestamp.isoformat(),
                         'table': new_log.table_name,
                         'action': new_log.change_type,
-                        'user': new_log.user.username
+                        'user': new_log.user.username if new_log.user else 'Usuario eliminado'
                     },
                     'triggers_tested': ['CREATE', 'DELETE']
                 }, status=status.HTTP_200_OK)

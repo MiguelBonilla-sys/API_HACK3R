@@ -20,7 +20,7 @@ class AuditLog(models.Model):
     
     Attributes:
         timestamp (datetime): Marca de tiempo de la operación
-        user (User): Usuario que realizó la operación
+        user (User): Usuario que realizó la operación (NULL si fue eliminado)
         table_name (str): Nombre de la tabla afectada
         change_type (str): Tipo de cambio (CREATE, UPDATE, DELETE)
         affected_record_id (int): ID del registro afectado
@@ -39,8 +39,10 @@ class AuditLog(models.Model):
     )
     user = models.ForeignKey(
         User, 
-        on_delete=models.DO_NOTHING,
-        help_text="Usuario que realizó la operación"
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Usuario que realizó la operación (NULL si el usuario fue eliminado)"
     )
     table_name = models.CharField(
         max_length=255,
@@ -80,7 +82,8 @@ class AuditLog(models.Model):
 
     def __str__(self):
         """Representación string del objeto."""
-        return f"{self.user.username} - {self.change_type} en {self.table_name}"
+        username = self.user.username if self.user else "Usuario eliminado"
+        return f"{username} - {self.change_type} en {self.table_name}"
     
     def save(self, *args, **kwargs):
         """Guarda el log con validaciones adicionales."""
