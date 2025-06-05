@@ -8,9 +8,10 @@ de usuarios y perfiles complementando rest_auth.
 from rest_framework import status, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.authtoken.models import Token
+from django.contrib.contenttypes.models import ContentType
 import logging
 
 logger = logging.getLogger(__name__)
@@ -132,5 +133,68 @@ def check_auth_status(request):
         logger.error(f"Error al verificar estado de autenticación: {str(e)}")
         return Response(
             {'error': 'Error al verificar el estado de autenticación'}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def get_user_permissions(request):
+    """
+    Endpoint para obtener los permisos del usuario autenticado.
+    
+    Returns:
+        Response: Lista de permisos del usuario por modelo
+    """
+    try:
+        user = request.user
+        
+        # Obtener todos los permisos del usuario
+        all_perms = []
+        
+        # Permisos directos del usuario
+        for perm in user.user_permissions.all():
+            all_perms.append({
+                'model': perm.content_type.model,
+                'codename': perm.codename,
+                'name': perm.name
+            })
+            
+        # Permisos a través de grupos
+        for group in user.groups.all():
+            for perm in group.permissions.all():
+                all_perms.append({
+                    'model': perm.content_type.model,
+                    'codename': perm.codename,
+                    'name': perm.name,
+                    'group': group.name
+                })
+                
+        # Organizar permisos por modelo
+        perms_by_model = {}
+        for perm in all_perms:
+            model = perm['model']
+            if model not in perms_by_model:
+                perms_by_model[model] = []
+            perms_by_model[model].append(perm)
+            
+        response_data = {
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'is_staff': user.is_staff,
+                'is_superuser': user.is_superuser,
+                'groups': list(user.groups.values_list('name', flat=True))
+            },
+            'permissions': perms_by_model
+        }
+        
+        logger.info(f"Permisos obtenidos para usuario: {user.username}")
+        return Response(response_data, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Error al obtener permisos de usuario: {str(e)}")
+        return Response(
+            {'error': 'Error al obtener los permisos del usuario'}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )

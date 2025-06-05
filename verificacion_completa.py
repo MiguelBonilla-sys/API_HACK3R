@@ -86,8 +86,7 @@ def check_audit_logs():
         recent = AuditLog.objects.order_by('-timestamp')[:5]
         print(f"\n📋 ÚLTIMOS 5 REGISTROS:")
         for i, log in enumerate(recent, 1):
-            username = log.user.username if log.user else "Usuario eliminado"
-            print(f"   {i}. {log.timestamp.strftime('%H:%M:%S')} - {log.change_type} en {log.table_name} por {username}")
+            print(f"   {i}. {log.timestamp.strftime('%H:%M:%S')} - {log.change_type} en {log.table_name} por {log.user.username}")
         
         # Estadísticas por tabla
         from django.db.models import Count
@@ -158,8 +157,7 @@ def interactive_verification():
     recent_log = AuditLog.objects.order_by('-timestamp').first()
     if recent_log and recent_log.table_name == 'blog_conferencias' and recent_log.change_type == 'CREATE':
         print("✅ ¡PERFECTO! Se detectó el nuevo log CREATE")
-        username = recent_log.user.username if recent_log.user else "Usuario eliminado"
-        print(f"   📝 Usuario: {username}")
+        print(f"   📝 Usuario: {recent_log.user.username}")
         print(f"   🕐 Tiempo: {recent_log.timestamp}")
     else:
         print("⚠️  No se detectó el log inmediatamente, puede tardar unos segundos")
