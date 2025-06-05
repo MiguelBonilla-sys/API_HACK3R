@@ -84,7 +84,7 @@ def get_all_permissions() -> Dict[str, List[str]]:
         model_perms = Permission.objects.filter(content_type=ct)
         app_permissions[ct.model] = [
             {
-                'id': perm.id,
+                'id': perm.pk,
                 'codename': perm.codename,
                 'name': perm.name
             }

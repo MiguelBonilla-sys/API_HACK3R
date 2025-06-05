@@ -35,7 +35,11 @@ class BaseModelViewSet(viewsets.ModelViewSet):
     
     def get_model_name(self):
         """Obtiene el nombre del modelo en minúsculas."""
-        return self.queryset.model._meta.model_name
+        if self.queryset is not None:
+            return self.queryset.model._meta.model_name
+        else:
+            queryset = self.get_queryset()
+            return queryset.model._meta.model_name
     
     def check_object_permissions(self, request, obj):
         """
@@ -44,16 +48,36 @@ class BaseModelViewSet(viewsets.ModelViewSet):
         Args:
             request: Request actual
             obj: Objeto a verificar
+            
+        Raises:
+            PermissionDenied: Si el usuario no tiene permisos suficientes
         """
+        # Primero verificar permisos generales
         super().check_object_permissions(request, obj)
         
-        # Verificar si el usuario es el creador (si aplica)
-        if hasattr(obj, 'creador') and obj.creador != request.user:
-            if not request.user.is_staff:
-                self.permission_denied(
-                    request,
-                    message='No tienes permiso para modificar este objeto'
-                )
+        # Si el usuario es staff o superuser, tiene todos los permisos
+        if request.user.is_staff or request.user.is_superuser:
+            return
+        
+        # Verificar si el objeto tiene campo creador
+        if hasattr(obj, 'creador'):
+            # Si el usuario no es el creador, verificar permisos específicos
+            if obj.creador != request.user:
+                # Para acciones de modificación/eliminación, denegar acceso
+                if request.method in ['PUT', 'PATCH', 'DELETE']:
+                    self.permission_denied(
+                        request,
+                        message='Solo el creador o el staff puede modificar/eliminar este objeto'
+                    )
+                
+                # Para lectura, verificar permisos de vista
+                elif request.method == 'GET':
+                    model_name = self.get_model_name()
+                    if not check_model_permission(request.user, model_name, 'view'):
+                        self.permission_denied(
+                            request,
+                            message=f'No tienes permiso para ver este {model_name}'
+                        )
     
     def check_action_permission(self, request, action):
         """
