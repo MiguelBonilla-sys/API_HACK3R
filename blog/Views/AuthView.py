@@ -12,8 +12,6 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.authtoken.models import Token
 import logging
-from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -72,47 +70,11 @@ def update_profile(request):
         data = request.data
         
         # Campos que se pueden actualizar
-        updatable_fields = {
-            'first_name': str,
-            'last_name': str,
-            'email': str
-        }
+        updatable_fields = ['first_name', 'last_name', 'email']
         
-        # Validar y actualizar campos
-        for field, field_type in updatable_fields.items():
+        for field in updatable_fields:
             if field in data:
-                value = data[field]
-                # Validar tipo de dato
-                if not isinstance(value, field_type):
-                    return Response(
-                        {
-                            'error': f'El campo {field} debe ser de tipo {field_type.__name__}',
-                            'field': field
-                        },
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-                # Validar email
-                if field == 'email' and value:
-                    try:
-                        validate_email(value)
-                        # Verificar que el email no esté siendo usado por otro usuario
-                        if User.objects.exclude(id=user.id).filter(email=value).exists():
-                            return Response(
-                                {
-                                    'error': 'Este email ya está siendo usado por otro usuario',
-                                    'field': 'email'
-                                },
-                                status=status.HTTP_400_BAD_REQUEST
-                            )
-                    except ValidationError:
-                        return Response(
-                            {
-                                'error': 'Email inválido',
-                                'field': 'email'
-                            },
-                            status=status.HTTP_400_BAD_REQUEST
-                        )
-                setattr(user, field, value)
+                setattr(user, field, data[field])
         
         user.save()
         

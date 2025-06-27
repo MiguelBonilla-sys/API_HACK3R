@@ -14,7 +14,7 @@ from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from blog.services.permissions_service import check_model_permission
-import logging
+import logging  
 
 logger = logging.getLogger(__name__)
 
@@ -37,9 +37,9 @@ class BaseModelViewSet(viewsets.ModelViewSet):
         """Obtiene el nombre del modelo en minúsculas."""
         if self.queryset is not None:
             return self.queryset.model._meta.model_name
-        else:
-            queryset = self.get_queryset()
-            return queryset.model._meta.model_name
+        if self.serializer_class is not None and hasattr(self.serializer_class, 'Meta'):
+            return self.serializer_class.Meta.model._meta.model_name
+        raise ValueError("No se puede determinar el nombre del modelo: queryset y serializer_class son None")
     
     def check_object_permissions(self, request, obj):
         """
@@ -48,36 +48,16 @@ class BaseModelViewSet(viewsets.ModelViewSet):
         Args:
             request: Request actual
             obj: Objeto a verificar
-            
-        Raises:
-            PermissionDenied: Si el usuario no tiene permisos suficientes
         """
-        # Primero verificar permisos generales
         super().check_object_permissions(request, obj)
         
-        # Si el usuario es staff o superuser, tiene todos los permisos
-        if request.user.is_staff or request.user.is_superuser:
-            return
-        
-        # Verificar si el objeto tiene campo creador
-        if hasattr(obj, 'creador'):
-            # Si el usuario no es el creador, verificar permisos específicos
-            if obj.creador != request.user:
-                # Para acciones de modificación/eliminación, denegar acceso
-                if request.method in ['PUT', 'PATCH', 'DELETE']:
-                    self.permission_denied(
-                        request,
-                        message='Solo el creador o el staff puede modificar/eliminar este objeto'
-                    )
-                
-                # Para lectura, verificar permisos de vista
-                elif request.method == 'GET':
-                    model_name = self.get_model_name()
-                    if not check_model_permission(request.user, model_name, 'view'):
-                        self.permission_denied(
-                            request,
-                            message=f'No tienes permiso para ver este {model_name}'
-                        )
+        # Verificar si el usuario es el creador (si aplica)
+        if hasattr(obj, 'creador') and obj.creador != request.user:
+            if not request.user.is_staff:
+                self.permission_denied(
+                    request,
+                    message='No tienes permiso para modificar este objeto'
+                )
     
     def check_action_permission(self, request, action):
         """
