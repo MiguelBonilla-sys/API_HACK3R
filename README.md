@@ -12,8 +12,8 @@
 
 - **🌐 Aplicación**: https://apihack3r-production.up.railway.app
 - **🔐 Panel de Administración**: https://apihack3r-production.up.railway.app/admin/
-- **📚 Documentación API (Swagger)**: https://apihack3r-production.up.railway.app/api/docs/
-- **🚀 API Base URL**: https://apihack3r-production.up.railway.app/api/hl4/v1/
+- **📚 Documentación API (Swagger)**: https://apihack3r-production.up.railway.app/api/swagger/
+- **🚀 API Base URL**: https://apihack3r-production.up.railway.app/api/
 
 ## 📋 Descripción del Proyecto
 
@@ -38,7 +38,6 @@ API_HACK3R es un sistema completo de gestión académica desarrollado como API R
 
 ### 🚀 API Robusta y Versionada
 - ✅ Endpoints RESTful completos (CRUD)
-- ✅ Versionado de API `/api/hl4/v1/`
 - ✅ Filtros y búsquedas avanzadas
 - ✅ Paginación automática
 - ✅ Validación de datos robusta
@@ -83,7 +82,7 @@ gunicorn==21.2.0
 
 ### 📊 API Base
 ```
-GET /api/hl4/v1/                    # Vista raíz con todos los endpoints
+GET /api/                           # Vista raíz con todos los endpoints
 ```
 
 ### 🔐 Autenticación
@@ -98,68 +97,68 @@ PUT  /api/profile/update/           # Actualizar perfil
 
 ### 📚 Conferencias
 ```
-GET    /api/hl4/v1/conferencias/              # Lista todas las conferencias
-POST   /api/hl4/v1/conferencias/              # Crear nueva conferencia
-GET    /api/hl4/v1/conferencias/{id}/         # Detalle de conferencia
-PUT    /api/hl4/v1/conferencias/{id}/         # Actualizar conferencia
-DELETE /api/hl4/v1/conferencias/{id}/         # Eliminar conferencia
-GET    /api/hl4/v1/conferencias/proximas/     # Conferencias próximas
+GET    /api/conferencias/                    # Lista todas las conferencias
+POST   /api/conferencias/                    # Crear nueva conferencia
+GET    /api/conferencias/{id}/               # Detalle de conferencia
+PUT    /api/conferencias/{id}/               # Actualizar conferencia
+DELETE /api/conferencias/{id}/               # Eliminar conferencia
+GET    /api/conferencias/proximas/           # Conferencias próximas
 ```
 
 ### 🎓 Cursos
 ```
-GET    /api/hl4/v1/cursos/                    # Lista todos los cursos
-POST   /api/hl4/v1/cursos/                    # Crear nuevo curso
-GET    /api/hl4/v1/cursos/{id}/               # Detalle de curso
-PUT    /api/hl4/v1/cursos/{id}/               # Actualizar curso
-DELETE /api/hl4/v1/cursos/{id}/               # Eliminar curso
-GET    /api/hl4/v1/cursos/activos/            # Cursos activos
+GET    /api/cursos/                          # Lista todos los cursos
+POST   /api/cursos/                          # Crear nuevo curso
+GET    /api/cursos/{id}/                     # Detalle de curso
+PUT    /api/cursos/{id}/                     # Actualizar curso
+DELETE /api/cursos/{id}/                     # Eliminar curso
+GET    /api/cursos/activos/                  # Cursos activos
 ```
 
 ### 👥 Integrantes
 ```
-GET    /api/hl4/v1/integrantes/               # Lista todos los integrantes
-POST   /api/hl4/v1/integrantes/               # Crear nuevo integrante
-GET    /api/hl4/v1/integrantes/{id}/          # Detalle de integrante
-PUT    /api/hl4/v1/integrantes/{id}/          # Actualizar integrante
-DELETE /api/hl4/v1/integrantes/{id}/          # Eliminar integrante
+GET    /api/integrantes/                     # Lista todos los integrantes
+POST   /api/integrantes/                     # Crear nuevo integrante
+GET    /api/integrantes/{id}/                # Detalle de integrante
+PUT    /api/integrantes/{id}/                # Actualizar integrante
+DELETE /api/integrantes/{id}/                # Eliminar integrante
 ```
 
 ### 📰 Noticias
 ```
-GET    /api/hl4/v1/noticias/                  # Lista todas las noticias
-POST   /api/hl4/v1/noticias/                  # Crear nueva noticia
-GET    /api/hl4/v1/noticias/{id}/             # Detalle de noticia
-PUT    /api/hl4/v1/noticias/{id}/             # Actualizar noticia
-DELETE /api/hl4/v1/noticias/{id}/             # Eliminar noticia
-GET    /api/hl4/v1/noticias/recientes/        # Noticias recientes
+GET    /api/noticias/                        # Lista todas las noticias
+POST   /api/noticias/                        # Crear nueva noticia
+GET    /api/noticias/{id}/                   # Detalle de noticia
+PUT    /api/noticias/{id}/                   # Actualizar noticia
+DELETE /api/noticias/{id}/                   # Eliminar noticia
+GET    /api/noticias/recientes/              # Noticias recientes
 ```
 
 ### 💼 Ofertas de Empleo
 ```
-GET    /api/hl4/v1/ofertasempleo/             # Lista todas las ofertas
-POST   /api/hl4/v1/ofertasempleo/             # Crear nueva oferta
-GET    /api/hl4/v1/ofertasempleo/{id}/        # Detalle de oferta
-PUT    /api/hl4/v1/ofertasempleo/{id}/        # Actualizar oferta
-DELETE /api/hl4/v1/ofertasempleo/{id}/        # Eliminar oferta
+GET    /api/ofertasempleo/                   # Lista todas las ofertas
+POST   /api/ofertasempleo/                   # Crear nueva oferta
+GET    /api/ofertasempleo/{id}/              # Detalle de oferta
+PUT    /api/ofertasempleo/{id}/              # Actualizar oferta
+DELETE /api/ofertasempleo/{id}/              # Eliminar oferta
 ```
 
 ### 🚀 Proyectos
 ```
-GET    /api/hl4/v1/proyectos/                 # Lista todos los proyectos
-POST   /api/hl4/v1/proyectos/                 # Crear nuevo proyecto
-GET    /api/hl4/v1/proyectos/{id}/            # Detalle de proyecto
-PUT    /api/hl4/v1/proyectos/{id}/            # Actualizar proyecto
-DELETE /api/hl4/v1/proyectos/{id}/            # Eliminar proyecto
+GET    /api/proyectos/                       # Lista todos los proyectos
+POST   /api/proyectos/                       # Crear nuevo proyecto
+GET    /api/proyectos/{id}/                  # Detalle de proyecto
+PUT    /api/proyectos/{id}/                  # Actualizar proyecto
+DELETE /api/proyectos/{id}/                  # Eliminar proyecto
 ```
 
 ### 📊 Sistema de Auditoría (Solo Admin)
 ```
-GET    /api/hl4/v1/auditlog/                  # Lista de logs de auditoría
-GET    /api/hl4/v1/auditlog/{id}/             # Detalle de log específico
-GET    /api/hl4/v1/auditlog/resumen_actividad/ # Estadísticas 24h/7d
-GET    /api/hl4/v1/auditlog/errores_recientes/ # Logs de error
-POST   /api/hl4/v1/auditlog/limpiar_logs_antiguos/ # Limpieza (superuser)
+GET    /api/auditlog/                        # Lista de logs de auditoría
+GET    /api/auditlog/{id}/                   # Detalle de log específico
+GET    /api/auditlog/resumen_actividad/      # Estadísticas 24h/7d
+GET    /api/auditlog/errores_recientes/      # Logs de error
+POST   /api/auditlog/limpiar_logs_antiguos/  # Limpieza (superuser)
 ```
 
 ## 🔧 Instalación y Configuración Local
@@ -269,7 +268,7 @@ Respuesta:
 
 #### Crear una Conferencia
 ```bash
-curl -X POST http://localhost:8000/api/hl4/v1/conferencias/ \
+curl -X POST http://localhost:8000/api/conferencias/ \
   -H "Authorization: Token tu_token_aqui" \
   -H "Content-Type: application/json" \
   -d '{
@@ -283,13 +282,13 @@ curl -X POST http://localhost:8000/api/hl4/v1/conferencias/ \
 
 #### Obtener Lista de Cursos
 ```bash
-curl -X GET http://localhost:8000/api/hl4/v1/cursos/ \
+curl -X GET http://localhost:8000/api/cursos/ \
   -H "Authorization: Token tu_token_aqui"
 ```
 
 #### Filtrar Noticias Recientes
 ```bash
-curl -X GET http://localhost:8000/api/hl4/v1/noticias/recientes/ \
+curl -X GET http://localhost:8000/api/noticias/recientes/ \
   -H "Authorization: Token tu_token_aqui"
 ```
 
@@ -297,19 +296,19 @@ curl -X GET http://localhost:8000/api/hl4/v1/noticias/recientes/ \
 
 #### Buscar Conferencias por Ponente
 ```bash
-curl -X GET "http://localhost:8000/api/hl4/v1/conferencias/?search=Dr.%20Juan" \
+curl -X GET "http://localhost:8000/api/conferencias/?search=Dr.%20Juan" \
   -H "Authorization: Token tu_token_aqui"
 ```
 
 #### Filtrar Cursos por Fecha
 ```bash
-curl -X GET "http://localhost:8000/api/hl4/v1/cursos/?fechainicial_curso__gte=2024-01-01" \
+curl -X GET "http://localhost:8000/api/cursos/?fechainicial_curso__gte=2024-01-01" \
   -H "Authorization: Token tu_token_aqui"
 ```
 
 #### Ordenar Proyectos por Fecha
 ```bash
-curl -X GET "http://localhost:8000/api/hl4/v1/proyectos/?ordering=-fecha_proyecto" \
+curl -X GET "http://localhost:8000/api/proyectos/?ordering=-fecha_proyecto" \
   -H "Authorization: Token tu_token_aqui"
 ```
 
@@ -340,13 +339,13 @@ El sistema incluye un completo sistema de auditoría que registra:
 
 ### Acceso a Logs (Solo Admin)
 ```bash
-curl -X GET http://localhost:8000/api/hl4/v1/auditlog/ \
+curl -X GET http://localhost:8000/api/auditlog/ \
   -H "Authorization: Token token_de_admin"
 ```
 
 ### Estadísticas de Actividad
 ```bash
-curl -X GET http://localhost:8000/api/hl4/v1/auditlog/resumen_actividad/ \
+curl -X GET http://localhost:8000/api/auditlog/resumen_actividad/ \
   -H "Authorization: Token token_de_admin"
 ```
 
